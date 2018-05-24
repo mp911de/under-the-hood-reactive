@@ -55,7 +55,8 @@ public class CassandraIntegrationTests {
 	public void before() {
 
 		Flux<Person> people = cassandraOperations.truncate(Person.class)
-				.thenMany(Flux.fromStream(People.stream()).flatMap(cassandraOperations::insert));
+				.thenMany(Flux.fromStream(People.stream()) //
+						.flatMap(cassandraOperations::insert));
 
 		StepVerifier.create(people).expectNextCount(ITEM_COUNT).verifyComplete();
 		System.out.println();
@@ -72,7 +73,9 @@ public class CassandraIntegrationTests {
 
 		Flux<Row> find = cassandraOperations.getReactiveCqlOperations().queryForRows("SELECT * FROM person");
 
-		StepVerifier.create(find).expectNextCount(ITEM_COUNT).verifyComplete();
+		StepVerifier.create(find) //
+				.expectNextCount(ITEM_COUNT) //
+				.verifyComplete();
 	}
 
 	/**
@@ -85,7 +88,9 @@ public class CassandraIntegrationTests {
 
 		Flux<Person> find = cassandraOperations.select(Query.empty(), Person.class);
 
-		StepVerifier.create(find).expectNextCount(ITEM_COUNT).verifyComplete();
+		StepVerifier.create(find) //
+				.expectNextCount(ITEM_COUNT) //
+				.verifyComplete();
 	}
 
 	/**
@@ -100,7 +105,9 @@ public class CassandraIntegrationTests {
 
 		Flux<Person> find = cassandraOperations.select(Query.empty().queryOptions(queryOptions), Person.class);
 
-		StepVerifier.create(find).expectNextCount(ITEM_COUNT).verifyComplete();
+		StepVerifier.create(find) //
+				.expectNextCount(ITEM_COUNT) //
+				.verifyComplete();
 	}
 
 	/**
@@ -112,7 +119,8 @@ public class CassandraIntegrationTests {
 
 		log.info("findRequestWithFilter: Find all via findAll and filter(…) operator");
 
-		QueryOptions queryOptions = QueryOptions.builder().fetchSize(10).build();
+		QueryOptions queryOptions = QueryOptions.builder() //
+				.fetchSize(10).build();
 
 		Flux<Person> find = cassandraOperations.select(Query.empty().queryOptions(queryOptions), Person.class) //
 				.filter(p -> p.name.length() > 20) //

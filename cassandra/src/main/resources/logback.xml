@@ -3,7 +3,7 @@
 
 	<appender name="console" class="ch.qos.logback.core.ConsoleAppender">
 		<encoder>
-			<pattern>%d %5p %40.40c:%4L - %m%n</pattern>
+			<pattern>%5p %12.12c{11}:%4L - %m%n</pattern>
 		</encoder>
 	</appender>
 

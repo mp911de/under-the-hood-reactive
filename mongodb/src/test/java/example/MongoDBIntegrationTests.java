@@ -51,9 +51,13 @@ public class MongoDBIntegrationTests {
 	public void before() {
 
 		Flux<Person> people = mongoOperations.dropCollection(Person.class)
-				.thenMany(Flux.fromStream(People.stream()).buffer(20).flatMap(mongoOperations::insertAll));
+				.thenMany(Flux.fromStream(People.stream()) //
+						.buffer(20) //
+						.flatMap(mongoOperations::insertAll));
 
-		StepVerifier.create(people).expectNextCount(ITEM_COUNT).verifyComplete();
+		StepVerifier.create(people) //
+				.expectNextCount(ITEM_COUNT) //
+				.verifyComplete();
 		System.out.println();
 		System.out.println();
 	}
@@ -62,13 +66,15 @@ public class MongoDBIntegrationTests {
 	 * Read from {@link com.mongodb.reactivestreams.client.MongoCollection} with request(unbounded).
 	 */
 	@Test
-	public void findRequestUnboundedFromCollection() {
+	public void findRequestUnboundedFromMongoCollection() {
 
 		log.info("findRequestUnboundedFromCollection: Find all using MongoCollection (Driver)");
 
 		Publisher<Document> find = mongoOperations.getCollection("person").find();
 
-		StepVerifier.create(find).expectNextCount(ITEM_COUNT).verifyComplete();
+		StepVerifier.create(find) //
+				.expectNextCount(ITEM_COUNT) //
+				.verifyComplete();
 	}
 
 	/**
@@ -81,7 +87,9 @@ public class MongoDBIntegrationTests {
 
 		Flux<Person> find = mongoOperations.findAll(Person.class);
 
-		StepVerifier.create(find).expectNextCount(ITEM_COUNT).verifyComplete();
+		StepVerifier.create(find) //
+				.expectNextCount(ITEM_COUNT) //
+				.verifyComplete();
 	}
 
 	/**
@@ -146,7 +154,7 @@ public class MongoDBIntegrationTests {
 
 		log.info("findRequestLimitRate: Find all via findAll using limitRate(20)");
 
-		Flux<Person> find = Flux.from(mongoOperations.findAll(Person.class));
+		Flux<Person> find = mongoOperations.findAll(Person.class);
 
 		// limit rate reduces initial prefetch by prefetch >> 2 for smart pre-buffering
 

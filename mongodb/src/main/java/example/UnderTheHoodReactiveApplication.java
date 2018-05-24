@@ -18,6 +18,7 @@ package example;
 import java.util.Arrays;
 import java.util.List;
 
+import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -50,7 +51,7 @@ public class UnderTheHoodReactiveApplication {
 
 		Logger logger = LoggerFactory.getLogger("example.mongodb.listener");
 
-		List<String> filter = Arrays.asList("insert", "drop");
+		List<String> filter = Arrays.asList("insert", "drop", "endSessions");
 
 		return clientSettingsBuilder -> {
 
@@ -63,7 +64,12 @@ public class UnderTheHoodReactiveApplication {
 						return;
 					}
 
-					logger.info("|MongoDB| " + event.getCommand().toJson());
+					Document copy = Document.parse(event.getCommand().toJson());
+
+					copy.remove("lsid");
+					copy.remove("$readPreference");
+
+					logger.info("|MongoDB| " + copy.toJson());
 
 				}
 
