@@ -31,6 +31,7 @@ import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.test.context.junit4.SpringRunner;
 
 /**
@@ -118,8 +119,7 @@ public class MongoDBIntegrationTests {
 		log.info("findRequestWithFilter: Find all via findAll and filter(…) operator");
 
 		Flux<Person> find = mongoOperations.findAll(Person.class) //
-				.filter(p -> p.name.length() > 20) //
-				.log("example.filter", Level.INFO, SignalType.REQUEST);
+				.filter(p -> p.name.length() > 20);
 
 		StepVerifier.create(find, 10) //
 				.expectNextCount(7) //
@@ -137,9 +137,9 @@ public class MongoDBIntegrationTests {
 		log.info("findRequestWithFilterAndPrefetch: Find all via findAll and filter(…) using limitRate(20)");
 
 		Flux<Person> find = mongoOperations.findAll(Person.class) //
+				// .log("example.filter", Level.INFO, SignalType.REQUEST) //
 				.limitRate(20) //
-				.filter(p -> p.name.length() > 20) //
-				.log("example.filter", Level.INFO, SignalType.REQUEST);
+				.filter(p -> p.name.length() > 20);
 
 		StepVerifier.create(find, 10) //
 				.expectNextCount(7) //
@@ -147,22 +147,23 @@ public class MongoDBIntegrationTests {
 	}
 
 	/**
-	 * Read from {@link ReactiveMongoOperations#findAll(Class)} with limitRate(20).
+	 * Read from {@link ReactiveMongoOperations#find(Query, Class)} with request(10) and a {@link Flux#filter(Predicate)}
+	 * operator. Additionally adding {@link Query#cursorBatchSize(int)} to control the batch size.
 	 */
 	@Test
-	public void findRequestLimitRate() {
+	public void findRequestWithFilterAndBatchSize() {
 
-		log.info("findRequestLimitRate: Find all via findAll using limitRate(20)");
+		log.info("findRequestWithFilterAndBatchSize: Find all via find and filter(…) using cursorBatchSize(20)");
 
-		Flux<Person> find = mongoOperations.findAll(Person.class);
+		Flux<Person> find = mongoOperations.find(new Query().cursorBatchSize(20), Person.class) //
+				// .log("example.filter", Level.INFO, SignalType.REQUEST)
+				// limit rate reduces initial prefetch by prefetch >> 2 for smart pre-buffering
+				// .limitRate(5) - uncomment to issue multiple requests of which the most are served from the recv buffer
+				.filter(p -> p.name.length() > 20);
 
-		// limit rate reduces initial prefetch by prefetch >> 2 for smart pre-buffering
-
-		// StepVerifier.create(find.limitRate(20)).expectNextCount(ITEM_COUNT).verifyComplete();
-
-		StepVerifier.create(find.log("example.flux.find", Level.INFO, SignalType.REQUEST) //
-				.limitRate(20)) //
-				.expectNextCount(ITEM_COUNT) //
+		StepVerifier.create(find, 10) //
+				.expectNextCount(7) //
 				.verifyComplete();
 	}
+
 }

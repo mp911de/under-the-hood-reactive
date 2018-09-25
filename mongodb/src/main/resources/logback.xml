@@ -3,13 +3,15 @@
 
 	<appender name="console" class="ch.qos.logback.core.ConsoleAppender">
 		<encoder>
-			<pattern>%5p %12.12c{11}:%4L - %m%n</pattern>
+			<pattern>%5p %c:%4L - %m%n</pattern>
 		</encoder>
 	</appender>
 
 	<logger name="example" level="info"/>
+	<logger name="org.mongodb" level="warn"/>
+	<logger name="org.springframework" level="warn"/>
 
-	<root level="error">
+	<root level="info">
 		<appender-ref ref="console"/>
 	</root>
 

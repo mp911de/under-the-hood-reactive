@@ -133,25 +133,24 @@ public class CassandraIntegrationTests {
 
 	/**
 	 * Read from {@link org.springframework.data.cassandra.core.cql.ReactiveCqlTemplate#queryForRows(Statement)} with
-	 * limitRate(20).
+	 * limitRate(5).
 	 */
 	@Test
 	public void findRequestLimitRate() {
 
-		log.info("findRequestLimitRate: Find all via findAll using limitRate(20)");
+		log.info("findRequestLimitRate: Find all via findAll using limitRate(5)");
 
 		Statement statement = new SimpleStatement("SELECT * FROM person");
 		statement.setFetchSize(20);
 
-		Flux<Row> find = Flux.from(cassandraOperations.getReactiveCqlOperations().queryForRows(statement));
+		Flux<Row> find = Flux.from(cassandraOperations.getReactiveCqlOperations().queryForRows(statement)) //
+				.log("example.flux.find", Level.INFO, SignalType.REQUEST) //
+				// limit rate reduces initial prefetch by prefetch >> 2 for smart pre-buffering
+				// .limitRate(5) - uncomment to issue multiple requests of which the most are served from the recv buffer
+				.filter(r -> r.getString("name").length() > 20);
 
-		// limit rate reduces initial prefetch by prefetch >> 2 for smart pre-buffering
-
-		StepVerifier.create(find.limitRate(20)).expectNextCount(ITEM_COUNT).verifyComplete();
-
-		/*StepVerifier.create(find.log("example.flux.find", Level.INFO, SignalType.REQUEST) //
-				.limitRate(20)) //
-				.expectNextCount(ITEM_COUNT) //
-				.verifyComplete();*/
+		StepVerifier.create(find) //
+				.expectNextCount(7) //
+				.verifyComplete();
 	}
 }
